@@ -6,6 +6,7 @@ The `WeatherFetcher` class provides a simple interface to fetch weather data for
 - Fetch current weather details for a given city.
 - Fetch and display the current temperature in Celsius.
 - Save weather data to a file.
+- Save weather data to a QR code.
 - Log useful information, warnings, and errors during API calls.
 
 ## Requirements
