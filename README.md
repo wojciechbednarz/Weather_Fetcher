@@ -18,5 +18,5 @@ The `WeatherFetcher` class provides a simple interface to fetch weather data for
 Ensure that you have the required dependencies:
 
 ```bash
-pip install requests
+pip install -r requirements.txt
 
