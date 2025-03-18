@@ -1,9 +1,13 @@
-from typing import Any
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../app')))
 import storage
+from typing import Any
 import logging
 import utils
 import asyncio
 import aiohttp
+
 
 class ColorFormatter(logging.Formatter):
     """
@@ -62,13 +66,14 @@ class WeatherFetcher:
         async with aiohttp.ClientSession() as session:
             for city in self._cities:
                 url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&appid={API_KEY}"
-                await storage.save_city_weather_link_as_qr_code(url, city)
+                if self.create_qr_codes:
+                    await storage.save_city_weather_link_as_qr_code(url, city)
                 try:
                     async with session.get(url) as response:
                         response.raise_for_status()
                         data = await response.json()  # Await JSON parsing
                         await storage.save_weather_output_to_file(data, "output.json", city)  # Save the data
-                        logger.info(f"Fetched weather for {city}: {url}")
+                        logger.info(f"URL to fetch data for the {city} city: {url}")
                         results[city] = data
                 except aiohttp.ClientError as e:
                     logger.error(f"Request failed for {city}: {e}")
@@ -80,17 +85,22 @@ class WeatherFetcher:
 
     async def get_temperature(self):
         weather_data = await self.get_weather()
+        temperatures = {}
         for city, data in weather_data.items():
             if "main" in data:
                 temp = data["main"]["temp"]
                 logger.info(f"Current temperature in {city} is {temp:.1f} Celsius degree.")
+                temperatures[city] = temp
             else:
                 logger.error(f"Could not fetch temperature for {city}: {data.get('error')}")
+                temperatures[city] = None
+        return temperatures
 
-async def main():
+def main():
     cities = ["Wroclaw", "London"]
     fetcher = WeatherFetcher(cities, True)
-    await fetcher.get_temperature()
+    asyncio.run(fetcher.get_temperature())
+
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
